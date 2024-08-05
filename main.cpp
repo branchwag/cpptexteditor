@@ -1,5 +1,29 @@
 #include <SFML/Graphics.hpp>
 #include <string>
+#include <sstream>
+
+std::string wrapText(const std::string& text, const sf::Font& font, unsigned int characterSize, float maxWidth) {
+    std::istringstream words(text);
+    std::string wrapped, word;
+    float spaceWidth = font.getGlyph(' ', characterSize, false).advance;
+    float lineWidth = 0;
+
+    while (words >> word) {
+        sf::Text temp(word, font, characterSize);
+        float wordWidth = temp.getLocalBounds().width;
+
+        if(lineWidth + wordWidth + spaceWidth > maxWidth) {
+            wrapped += '\n';
+            lineWidth = 0;
+        }
+
+        wrapped += word + ' ';
+        lineWidth += wordWidth + spaceWidth;
+    }
+
+    return wrapped;
+}
+
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Text Editor");
@@ -7,7 +31,7 @@ int main() {
     sf::Font font;
     font.loadFromFile("HomemadeApple-Regular.ttf");
 
-    sf::Text textDisplay(text, font, 24);
+    sf::Text textDisplay("", font, 24);
     textDisplay.setFillColor(sf::Color::White);
 
     while (window.isOpen()) {
@@ -22,7 +46,7 @@ int main() {
                 } else if (event.text.unicode < 128 && event.text.unicode != 8) {
                     text += static_cast<char>(event.text.unicode);
                 }
-                textDisplay.setString(text);
+                textDisplay.setString(wrapText(text, font, 24, window.getSize().x));
             }
         }
         //https://www.sfml-dev.org/documentation/2.0-fr/classsf_1_1Color.php
