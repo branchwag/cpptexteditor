@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <sstream>
+#include <chrono>
 
 std::string wrapText(const std::string& text, const sf::Font& font, unsigned int characterSize, float maxWidth) {
     std::istringstream words(text);
@@ -34,6 +35,12 @@ int main() {
     sf::Text textDisplay("", font, 24);
     textDisplay.setFillColor(sf::Color::White);
 
+    sf::RectangleShape cursor(sf::Vector2f(1, 24));
+    cursor.setFillColor(sf::Color::White);
+    bool cursorVisible = true;
+    auto lastBlinkTime = std::chrono::steady_clock::now();
+    const auto blinkInterval = std::chrono::milliseconds(500);
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -49,8 +56,20 @@ int main() {
                 textDisplay.setString(wrapText(text, font, 24, window.getSize().x));
             }
         }
+        //cursor magic
+        sf::FloatRect textBounds = textDisplay.getGlobalBounds();
+        cursor.setPosition(textBounds.left + textBounds.width, textBounds.top + textBounds.height - textDisplay.getCharacterSize());
+        auto now = std::chrono::steady_clock::now();
+        if (now - lastBlinkTime >= blinkInterval) {
+            cursorVisible = !cursorVisible;
+            lastBlinkTime = now;
+        }
+
         //https://www.sfml-dev.org/documentation/2.0-fr/classsf_1_1Color.php
         window.clear(sf::Color::Black); 
+        if (cursorVisible) {
+            window.draw(cursor);
+        }
         window.draw(textDisplay);
         window.display();
     }
