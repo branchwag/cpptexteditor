@@ -50,6 +50,7 @@ int main() {
                 //Backspace
                 if (event.text.unicode == 8 && !text.empty()) {
                     text.pop_back();
+                //Otherwise write text
                 } else if (event.text.unicode < 128 && event.text.unicode != 8) {
                     text += static_cast<char>(event.text.unicode);
                 }
@@ -58,7 +59,11 @@ int main() {
         }
         //cursor magic
         sf::FloatRect textBounds = textDisplay.getGlobalBounds();
-        cursor.setPosition(textBounds.left + textBounds.width, textBounds.top + textBounds.height - textDisplay.getCharacterSize());
+        if (!text.empty()) {
+            cursor.setPosition(textBounds.left + textBounds.width, textBounds.top + textBounds.height - textDisplay.getCharacterSize());
+        } else {
+            cursor.setPosition(0,0);
+        }
         auto now = std::chrono::steady_clock::now();
         if (now - lastBlinkTime >= blinkInterval) {
             cursorVisible = !cursorVisible;
